@@ -2,29 +2,23 @@
 # create a special matrix that can cache results of time consuming calculations
 # To save computing time, the calculation is done only if the matrix has changed
 
-#
+
 # makeCacheMatrix function
 # 
 # Holds a matrix and cache results of operations on that matrix
 #
-makeCacheMatrix <- function(x = matrix()) 
+makeCacheMatrix <- function(x = matrix())
 {	 
 	#
 	# internal cached matrix inverse value
 	#
-	inverseOfMatrix <- NULL	
-	
-	#
-	# Internal flag telling us that the matrix has changed
-	# NOTE: Its value starts at TRUE, so caller code will "know" 
-	# that the inverse needs to be calculated
-	#
-	bMatrixHasChangedSinceLastSetInverseCall <- TRUE		
-	
+    	inverseOfMatrix <- NULL	
+		
+
 	#
 	# Function to set the matrix
 	#
-	set <- function(y) 
+    	set <- function(y) 
 	{				
 		#
 		# Verify if new matrix has differents sizes or differents values
@@ -32,22 +26,22 @@ makeCacheMatrix <- function(x = matrix())
 		if(dim(x) != dim(y) || !all(x == y))
 		{
 			#
-			# Raise our internal flag telling us that the matrix has changed, so the inverse needs to be calculated again
+			# Matrix has changed, reset our cached inverse value
 			#
-			bMatrixHasChangedSinceLastSetInverseCall <<- TRUE				
+			inverseOfMatrix <<- NULL				
 		}
-	
+
 		#
 		# Set the matrix
 		#	
-		x <<- y	
-	}
-	
+	 	x <<- y	
+    	}
+
 	
 	#
 	# Function to retrieve the matrix
 	#
-	get <- function()
+    	get <- function()
 	{	
 		x
 	}
@@ -56,50 +50,35 @@ makeCacheMatrix <- function(x = matrix())
 	#
 	# Function to set the inverse of the matrix
 	#
-	setinverse <- function(inverse)
-	{		
-	
+    	setinverse <- function(inverse)
+	{	
+
 		#
 		# Cache the inverse value
 		#
-		inverseOfMatrix <<- inverse		
-	
-		#
-		# Reset our internal flag telling us that the matrix has changed, 
-		# so the inverse won't be calculated again (until the matrix has changed again)
-		#
-		bMatrixHasChangedSinceLastSetInverseCall <<- FALSE
+		inverseOfMatrix <<- inverse	
+		
 	}
-	
+
 	
 	#
 	# Function to retrieve the inverse of the matrix
 	#
-	getinverse <- function()
+    	getinverse <- function()
 	{			
 		inverseOfMatrix	
 	}
 	
 	
-	#
-	# Function to retrieve the status of the matrix 
-	# since the last time the  "SetInverse()" function has been called
-	#
-	matrixHasChangedSinceLastSetInverseCall <- function()
-	{			
-		bMatrixHasChangedSinceLastSetInverseCall	
-	}	
-	
-	
+  
 	#
 	# Returns the list of functions accessible externally
 	#
-        list(set = set, get = get, setinverse = setinverse, getinverse = getinverse,
-	    	 matrixHasChangedSinceLastSetInverseCall = matrixHasChangedSinceLastSetInverseCall)
+    	list(set = set, get = get, setinverse = setinverse, getinverse = getinverse)
 			
 }
-	
-	
+
+
 #
 # cacheSolve function
 # 
@@ -107,23 +86,27 @@ makeCacheMatrix <- function(x = matrix())
 #
 cacheSolve <- function(x, ...) 
 {
+	#
+	# Get the inverse
+	#
+	inv <- x$getinverse()
 	
 	#
-	# Verify if matrix has changed since the last time this function has been called
+	# Verify if inverse has already been calculated
 	#
-	if(x$matrixHasChangedSinceLastSetInverseCall() == FALSE)
+	if(!is.null(inv))
 	{
 		#
 		# message to user
 		#
-		message("Matrix hasn't changed, getting cached data")
+		message("getting cached data")
 		
 		#
-		# Return the inverse
+		# Return the cached inverse
 		#
-		return(x$getinverse())
+		return(inv)
 	}
-	
+
 	#
 	# Retrieve the matrix
 	#
@@ -133,18 +116,16 @@ cacheSolve <- function(x, ...)
 	# Calculate the inverse
 	#
 	inverseOfM <- solve(data, ...)
-	
+
 	#
 	# message to user
 	#
-	message("Matrix has changed, getting calculated data")
-	
+	message("getting calculated data")
+    
 	#
-	# this call will refresh the cached inverse value,
-	# reset the "matrixHasChangedSinceLastSetInverseCall" flag 
+	# this call will refresh the cached inverse value,	
 	# and return the inverse
 	#
 	x$setinverse(inverseOfM)    
 	
 }
-
